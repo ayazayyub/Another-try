@@ -18,9 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY . .
 
-# Install requirements with numpy constraint first
-RUN pip install --no-cache-dir "numpy<2" && \
-    pip install --no-cache-dir -r requirements.txt
+# Install base dependencies first
+RUN pip install --no-cache-dir numpy==1.26.4 torch==2.1.2 --extra-index-url https://download.pytorch.org/whl/cu121
+RUN pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir -p /app/models
 
