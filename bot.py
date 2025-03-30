@@ -61,7 +61,6 @@ async def generate_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         image.save(temp_file.name)
         await update.message.reply_photo(photo=open(temp_file.name, 'rb'))
 
-# Modify video generation function
 async def generate_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args)
     if not prompt:
@@ -75,7 +74,7 @@ async def generate_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     pipe.enable_model_cpu_offload()
     
-    # Generate frames
+    # Generate frames (adjust parameters as needed)
     frames = pipe(prompt, num_frames=24, decode_chunk_size=8).frames[0]
     
     # Save and send video
