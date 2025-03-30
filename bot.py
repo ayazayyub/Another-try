@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 
 # Configuration
-TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+TOKEN = "7968419921:AAF0yfB5nET_2lDrxqNUOuBYiTHDKvDi9H4"
 MODEL_NAME = "stabilityai/stable-diffusion-2-1"
 TEXT_MODEL = "google/flan-t5-large"
 
