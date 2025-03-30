@@ -1,11 +1,11 @@
 python-telegram-bot==20.3
-diffusers==0.25.0
+diffusers==0.24.0
 transformers==4.34.1
-accelerate==0.25.0
+accelerate==0.24.1
 ffmpeg-python==0.2.0
 xformers==0.0.23
 huggingface-hub==0.19.4
 numpy==1.26.4
 
-# Compatible with xformers 0.0.23 and numpy 1.x
-torch==2.1.2 --extra-index-url https://download.pytorch.org/whl/cu121
+# Exact version matching for xformers compatibility
+torch==2.1.1 --extra-index-url https://download.pytorch.org/whl/cu121
