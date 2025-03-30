@@ -1,3 +1,4 @@
+# Dockerfile
 FROM nvidia/cuda:12.1.1-base-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -18,10 +19,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY . .
 
-# Install dependencies in strict order
-RUN pip install --no-cache-dir numpy==1.24.4
-RUN pip install --no-cache-dir torch==2.1.1 --extra-index-url https://download.pytorch.org/whl/cu121
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir numpy==1.26.4 && \
+    pip install --no-cache-dir torch==2.3.0 --extra-index-url https://download.pytorch.org/whl/cu121 && \
+    pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir -p /app/models
 
