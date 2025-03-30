@@ -3,7 +3,7 @@ import logging
 import tempfile
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
-from diffusers import StableDiffusionPipeline, StableDiffusionVideoPipeline
+from diffusers import StableDiffusionPipeline, StableVideoDiffusionPipeline
 import torch
 from transformers import pipeline
 
@@ -67,21 +67,25 @@ async def generate_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Please provide a prompt.")
         return
     
-    video_frames = video_pipe(prompt, height=320, width=576, num_frames=24).frames
-    video_path = "output.mp4"
+    pipe = StableVideoDiffusionPipeline.from_pretrained(
+        "stabilityai/stable-video-diffusion-img2vid-xt",
+        torch_dtype=torch.float16,
+        variant="fp16"
+    )
+    pipe.enable_model_cpu_offload()
     
-    # Convert frames to video using ffmpeg
-    import subprocess
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        for i, frame in enumerate(video_frames):
-            frame.save(f"{tmp_dir}/frame_{i:04d}.png")
-        
-        subprocess.call([
-            'ffmpeg', '-y', '-framerate', '8',
-            '-i', f'{tmp_dir}/frame_%04d.png',
-            '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
-            video_path
-        ])
+    # Generate frames (modify parameters as needed)
+    frames = pipe(prompt, num_frames=24, decode_chunk_size=8).frames[0]
+    
+    # Save and send video
+    video_path = "output.mp4"
+    frames[0].save(
+        video_path,
+        save_all=True,
+        append_images=frames[1:],
+        duration=100,
+        loop=0
+    )
     
     await update.message.reply_video(video=open(video_path, 'rb'))
 
