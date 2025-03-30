@@ -1,11 +1,12 @@
 python-telegram-bot==20.3
-diffusers==0.24.0
-transformers==4.34.1
-accelerate==0.24.1
+diffusers==0.20.0
+transformers==4.30.2
+accelerate==0.20.3
 ffmpeg-python==0.2.0
-xformers==0.0.23
-huggingface-hub==0.19.4
-numpy==1.26.4
+xformers==0.0.22
+huggingface-hub==0.17.2
+numpy==1.24.4
+tokenizers==0.13.3
 
-# Exact version matching for xformers compatibility
+# Exact version match for CUDA 12.1 compatibility
 torch==2.1.1 --extra-index-url https://download.pytorch.org/whl/cu121
