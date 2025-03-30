@@ -1,11 +1,10 @@
-# Dockerfile
 FROM nvidia/cuda:12.1.1-base-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
-    PYTHONFAULTHANDLER=1 \
-    HF_HOME=/app/models \
-    HUGGINGFACE_HUB_CACHE=/app/models
+    HF_HUB_ENABLE_HF_TRANSFER=1 \
+    HF_HUB_DOWNLOAD_TIMEOUT=600 \
+    TORCH_CUDA_ARCH_LIST="8.6+PTX"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 \
@@ -19,10 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 COPY . .
 
-RUN pip install --no-cache-dir numpy==1.26.4 && \
-    pip install --no-cache-dir torch==2.3.0 --extra-index-url https://download.pytorch.org/whl/cu121 && \
-    pip install --no-cache-dir -r requirements.txt
-
-RUN mkdir -p /app/models
+RUN pip install --no-cache-dir -r requirements.txt
 
 CMD ["python3", "bot.py"]
