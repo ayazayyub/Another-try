@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Swipe Presentation Editor</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body,html{width:100%;height:100%;overflow:hidden;font-family:Arial;}
+.swiper{width:100%;height:100%;background:#ddd;}
+.swiper-slide{display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.textbox{min-width:200px;min-height:80px;padding:10px;background:white;border:1px solid #aaa;outline:none;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);cursor:text;resize:both;overflow:auto;}
+.toolbar{position:absolute;background:#fff;padding:8px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.2);display:none;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;z-index:9999;}
+.toolbar button{margin:3px;padding:6px 10px;border:none;background:#eee;cursor:pointer;border-radius:6px;}
+.bg-input{display:none;}
+.slide-bg-video, .slide-bg-img{
+ position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;
+}
+.gamepad{
+  position:fixed;
+  inset:auto 20px 20px auto;
+  display:grid;
+  grid-template-columns:repeat(3,54px);
+  grid-template-areas:
+    '. up .'
+    'left down right'
+    '. a b';
+  gap:8px;
+  z-index:10000;
+  user-select:none;
+}
+.gamepad button{
+  width:54px;
+  height:54px;
+  border:none;
+  border-radius:14px;
+  background:rgba(28,28,28,.68);
+  color:#fff;
+  font-weight:700;
+  box-shadow:0 6px 16px rgba(0,0,0,.26);
+}
+.gamepad button:active,
+.gamepad button.active{transform:scale(.96);background:rgba(28,28,28,.88);}
+.gamepad [data-action='up']{grid-area:up;}
+.gamepad [data-action='down']{grid-area:down;}
+.gamepad [data-action='left']{grid-area:left;}
+.gamepad [data-action='right']{grid-area:right;}
+.gamepad [data-action='a']{grid-area:a;background:rgba(16,139,55,.78);}
+.gamepad [data-action='b']{grid-area:b;background:rgba(172,64,21,.8);}
+.gamepad-help{
+  position:fixed;
+  left:14px;
+  bottom:14px;
+  font-size:12px;
+  background:rgba(255,255,255,.92);
+  color:#222;
+  border-radius:8px;
+  padding:8px 10px;
+  z-index:10000;
+}
+</style>
+</head>
+<body>
+<div class="swiper">
+  <div class="swiper-wrapper">
+    <div class="swiper-slide"><div class="textbox" contenteditable="true">Slide 1</div></div>
+    <div class="swiper-slide"><div class="textbox" contenteditable="true">Slide 2</div></div>
+    <div class="swiper-slide"><div class="textbox" contenteditable="true">Slide 3</div></div>
+  </div>
+  <div class="swiper-pagination"></div>
+</div>
+
+<div class="toolbar" id="toolbar">
+  <button onclick="execCmd('bold')">B</button>
+  <button onclick="execCmd('italic')">I</button>
+  <button onclick="execCmd('underline')">U</button>
+  <button onclick="insertImg()">IMG</button>
+  <button onclick="deleteTextbox()">DEL</button>
+  <button onclick="openBgPicker()">BG</button>
+</div>
+
+<div class="gamepad" id="gamepad">
+  <button data-action="up" aria-label="Move textbox up">↑</button>
+  <button data-action="left" aria-label="Previous slide">←</button>
+  <button data-action="down" aria-label="Move textbox down">↓</button>
+  <button data-action="right" aria-label="Next slide">→</button>
+  <button data-action="a" aria-label="Open toolbar">A</button>
+  <button data-action="b" aria-label="Clear selected textbox">B</button>
+</div>
+<div class="gamepad-help">
+  Keyboard mapping: Arrow keys = nav/move, Enter = A (toolbar), Backspace = B (clear).
+</div>
+
+<input type="file" id="bgPicker" class="bg-input" accept="image/*,video/*" />
+<input type="file" id="imgInsert" class="bg-input" accept="image/*" />
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+let activeTextbox = null;
+const toolbar = document.getElementById('toolbar');
+const gamepad = document.getElementById('gamepad');
+
+const swiper = new Swiper('.swiper', {
+  pagination: { el: '.swiper-pagination' }
+});
+
+function execCmd(cmd){ document.execCommand(cmd, false, null); }
+
+function insertImg(){
+  document.getElementById('imgInsert').click();
+}
+
+document.getElementById('imgInsert').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    document.execCommand('insertImage', false, reader.result);
+  };
+  reader.readAsDataURL(file);
+});
+
+function deleteTextbox(){ if(activeTextbox){ activeTextbox.innerHTML = ""; } }
+
+function openBgPicker(){ document.getElementById('bgPicker').click(); }
+
+function showToolbarForTextbox(tb){
+  if(!tb) return;
+  activeTextbox = tb;
+  const rect = tb.getBoundingClientRect();
+  toolbar.style.left = rect.right + 10 + 'px';
+  toolbar.style.top = rect.top + 'px';
+  toolbar.style.display = 'flex';
+}
+
+function moveTextbox(dx, dy){
+  if(!activeTextbox) return;
+  const style = window.getComputedStyle(activeTextbox);
+  const currentLeft = parseInt(style.left, 10);
+  const currentTop = parseInt(style.top, 10);
+  activeTextbox.style.left = currentLeft + dx + 'px';
+  activeTextbox.style.top = currentTop + dy + 'px';
+  activeTextbox.style.transform = 'translate(-50%, -50%)';
+}
+
+function triggerGamepad(action){
+  if(action === 'left') swiper.slidePrev();
+  if(action === 'right') swiper.slideNext();
+  if(action === 'up') moveTextbox(0, -8);
+  if(action === 'down') moveTextbox(0, 8);
+  if(action === 'a') showToolbarForTextbox(activeTextbox || swiper.slides[swiper.activeIndex].querySelector('.textbox'));
+  if(action === 'b') deleteTextbox();
+}
+
+gamepad.querySelectorAll('button').forEach(btn => {
+  const action = btn.dataset.action;
+  ['pointerdown', 'touchstart'].forEach(eventName => {
+    btn.addEventListener(eventName, event => {
+      event.preventDefault();
+      btn.classList.add('active');
+      triggerGamepad(action);
+    }, { passive: false });
+  });
+  ['pointerup', 'pointerleave', 'touchend', 'touchcancel'].forEach(eventName => {
+    btn.addEventListener(eventName, () => btn.classList.remove('active'));
+  });
+});
+
+document.addEventListener('keydown', e => {
+  const keyMap = {
+    ArrowLeft: 'left',
+    ArrowRight: 'right',
+    ArrowUp: 'up',
+    ArrowDown: 'down',
+    Enter: 'a',
+    Backspace: 'b'
+  };
+  const action = keyMap[e.key];
+  if(!action) return;
+  const editableFocused = document.activeElement && document.activeElement.isContentEditable;
+  if(editableFocused && (e.key === 'Backspace' || e.key === 'Enter')) return;
+  e.preventDefault();
+  triggerGamepad(action);
+});
+
+document.getElementById('bgPicker').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const slide = swiper.slides[swiper.activeIndex];
+  slide.querySelectorAll('.slide-bg-video, .slide-bg-img').forEach(el=>el.remove());
+
+  if(file.type.startsWith('video')){
+    const v = document.createElement('video');
+    v.className='slide-bg-video';
+    v.src = URL.createObjectURL(file);
+    v.autoplay = true;
+    v.loop = true;
+    v.muted = true;
+    slide.appendChild(v);
+  } else {
+    const img = document.createElement('img');
+    img.className='slide-bg-img';
+    img.src = URL.createObjectURL(file);
+    slide.appendChild(img);
+  }
+});
+
+// Position toolbar next to textbox
+document.querySelectorAll('.textbox').forEach(tb => {
+  tb.addEventListener('dblclick', () => {
+    showToolbarForTextbox(tb);
+  });
+  tb.addEventListener('focus', () => {
+    activeTextbox = tb;
+  });
+});
+
+// Hide toolbar on outside click
+document.addEventListener('click', e => {
+  if(!toolbar.contains(e.target) && !e.target.classList.contains('textbox')){
+    toolbar.style.display='none';
+  }
+});
+</script>
+</body>
+</html>
